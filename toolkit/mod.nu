@@ -1,11 +1,15 @@
 # Adapted from https://github.com/nushell/nu_scripts/blob/main/nu-hooks/nu-hooks/toolkit/hook.nu
 
 use utils/link.nu *
+use config.nu
+use logging.nu *
 
 const toolkit_tmp_dir = [$nu.temp-path toolkit $nu.pid] | path join
 
 # Initialize toolkit by adding a pre-prompt hook to load the configuration
 export def --env init [] {
+  log debug "Initializing"
+
   if (
     ($env.config.hooks.pre_prompt ++ $env.config.hooks.pre_execution)
     | where { $in | describe | str starts-with "record" }
@@ -40,6 +44,8 @@ export def --env init [] {
           | where allowed
           | take $max_layers
           | enumerate
+
+        log debug $"Found ($layers | length) allowed layers"
         
         for layer in $layers { 
           let mod = $toolkit_tmp_dir | path join $"toolkit-layer-($layer.index).nu"
@@ -85,11 +91,19 @@ export def --env init [] {
               )
             }
             # This must be done as a string to bypass parsing time checks
-            code: $"
-              overlay use -r ($layer_path)
-              $env.toolkit_env.($layer_index).last_sync = ls -l ($layer_path) | get accessed | first
-              print $\"toolkit: loaded layer \($env.toolkit_env.($layer_index).module_file)\"
-            "
+            # Last access time is more precise than (date now)
+            code: (
+              $"
+                overlay use -r ($layer_path)
+
+                $env.toolkit_env.($layer_index).last_sync = ls -l ($layer_path) | get accessed | first
+
+                use toolkit/logging.nu *
+                log info $\"loaded layer ($layer_index) from \($env.toolkit_env.($layer_index).module_file)\"
+                log debug $\"layer ($layer_index) watch files: \($env.toolkit_env.($layer_index).watch_files)\"
+                log trace $\"layer ($layer_index) last sync: \($env.toolkit_env.($layer_index).last_sync)\"
+              "
+            )
           }
         }
     )
@@ -161,51 +175,3 @@ export def layers []: [
     }}
   | reverse
 }
-
-# Get the default toolkit configuration
-export def "config default" []: [
-  nothing -> record<
-    filenames: list<string>
-    allowed: list<string>
-  >
-] {
-  {
-    filenames: ["toolkit.nu"]
-    allowed: []
-  }
-}
-
-# Get the path to the toolkit configuration file
-# Creates a default config file if none exists
-export def "config path" []: nothing -> string {
-  let config_dir = $env.XDG_CONFIG_HOME? | default {$env.HOME | path join '.config'}
-
-  mkdir $config_dir
-
-  let path = [ "toml" "json" "yaml" "yml" "nuon" ]
-    | each { |ext| $config_dir | path join $"toolkit.($ext)" }
-    | where { path exists }
-    | get 0?
-    | default {$config_dir | path join "toolkit.toml"}
-
-  if not ($path | path exists) {
-    config default | save $path
-  }
-
-  $path
-}
-
-# Get the current toolkit configuration
-export def config []: [
-  nothing -> record<
-    filenames: list<string>
-    allowed: list<string>
-  >
-] {
-  mut config = config default | merge deep (open (config path))
-
-  $config.allowed = $config.allowed | each { path expand -n }
-
-  $config
-}
-
