@@ -5,6 +5,7 @@ use config.nu
 use logging.nu *
 
 const toolkit_tmp_dir = [$nu.temp-path toolkit $nu.pid] | path join
+const mod_path = (path self | path parse).parent
 
 # Initialize toolkit by adding a pre-prompt hook to load the configuration
 export def --env init [] {
@@ -98,7 +99,7 @@ export def --env init [] {
 
                 $env.toolkit_env.($layer_index).last_sync = ls -l ($layer_path) | get accessed | first
 
-                use toolkit/logging.nu *
+                use ($mod_path)/logging.nu *
                 log info $\"loaded layer ($layer_index) from \($env.toolkit_env.($layer_index).module_file)\"
                 log debug $\"layer ($layer_index) watch files: \($env.toolkit_env.($layer_index).watch_files)\"
                 log trace $\"layer ($layer_index) last sync: \($env.toolkit_env.($layer_index).last_sync)\"
@@ -173,5 +174,4 @@ export def layers []: [
       path: $in 
       allowed: (is-allowed $in $config)
     }}
-  | reverse
 }
