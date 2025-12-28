@@ -1,6 +1,5 @@
 use config.nu
 
-
 # All log levels, in order of increasing verbosity
 const log_levels = {
   error: {
@@ -26,13 +25,13 @@ const log_levels = {
 }
 
 def --env log [
+  msg: string
   --level (-l): string = "info"
-  msg: any
 ] {
   let index = $log_levels | get $level | get index
 
   let current_level = config | get log_level
-  let current_index = $log_levels | get $current_level | get index
+  let current_index = $log_levels | get -o $current_level | get index
 
   if $index <= $current_index {
     print $"(ansi blue_reverse)toolkit(ansi reset) [($log_levels | get $level | get color)($level)(ansi reset)] ($msg)" 
