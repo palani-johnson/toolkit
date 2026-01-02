@@ -15,8 +15,11 @@
     - [With `git clone`](#with-git-clone)
   - [Configuration](#configuration)
     - [Options](#options)
+  - [Library](#library)
 
 ## Installation
+
+:warning: **INSTALL METHODS NOT TESTED, USE AT YOUR OWN RISK** :warning:
 
 ### With `nupm`
 
@@ -29,15 +32,24 @@ nupm install https://github.com/palani-johnson/toolkit --git
 Then in your `config.nu` add
 
 ```nushell
+use toolkit
 toolkit init
 ```
 
 ### With `git clone`
 
-Clone this repo, then in your `config.nu` add
+Clone this repo, then in your `env.nu` add
 
 ```nushell
-use /path/to/toolkit-repo/toolkit
+$env.NU_LIB_DIRS ++= [
+  "/path/to/toolkit-repo"
+]
+```
+
+Then in your `config.nu` add
+
+```nushell
+use toolkit
 toolkit init
 ```
 
@@ -62,3 +74,11 @@ A `--max-layers` parameter (default 5) can be passed to `toolkit init`, controll
 | filenames    | `list<string>`      | list of allowed file names                          | ["toolkit.nu"] |
 | allowed_dirs | `list<string>`      | list of allowed directory paths. must be absolute.  | []             |
 | log_level    | `oneof<string int>` | The configured log level (see `toolkit/logging.nu`) | info           |
+
+## Library
+
+Toolkit has (will have) a small library of code for common tasks. Access by using the lib in your toolkit module:
+
+```nushell
+use toolkit/lib *
+```
