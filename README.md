@@ -16,6 +16,7 @@
   - [Configuration](#configuration)
     - [Options](#options)
   - [Library](#library)
+  - [Extra acknowledgements](#extra-acknowledgements)
 
 ## Installation
 
@@ -82,3 +83,7 @@ Toolkit has (will have) a small library of code for common tasks. Access by usin
 ```nushell
 use toolkit/lib *
 ```
+
+## Extra acknowledgements
+
+This initially started as a fork of the nu_scripts [nuenv hook](https://github.com/nushell/nu_scripts/blob/main/nu-hooks/nu-hooks/nuenv/hook.nu) and [toolkit.nu](https://github.com/nushell/nu_scripts/blob/main/nu-hooks/nu-hooks/toolkit.nu). I noticed that `toolkit.nu` was a common name for a module of tool commands in some nushell projects.
