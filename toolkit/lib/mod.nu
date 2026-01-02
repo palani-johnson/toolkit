@@ -21,10 +21,10 @@ export def --env watch-files [
     }
 
     if $append {
-      $files = ($env.toolkit_env | get $cell_path) ++ $files
+      $files = ($env.toolkit.env | get $cell_path) ++ $files
     }
     
-    $env.toolkit_env = $env.toolkit_env | update $cell_path $files
+    $env.toolkit.env = $env.toolkit.env | update $cell_path $files
     
   } catch {
     error make -u {

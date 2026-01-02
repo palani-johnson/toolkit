@@ -1,7 +1,7 @@
 # Adapted from https://github.com/nushell/nu_scripts/blob/main/nu-hooks/nu-hooks/toolkit/hook.nu
 
 use utils/link.nu *
-use config.nu
+use env.nu *
 use logging.nu *
 
 const toolkit_tmp_dir = [$nu.temp-path toolkit $nu.pid] | path join
@@ -20,19 +20,7 @@ export def --env init [] {
       msg: "toolkit already configured"
     }
   }
-
-  $env.ENV_CONVERSIONS.TOOLKIT_ENABLED = {
-    from_string: { into bool }
-    to_string: { into string }
-  }
-  $env.TOOLKIT_ENABLED = $env.TOOLKIT_ENABLED? | default true
-  let max_layers = $env.TOOLKIT_MAX_LAYERS? | default 5
-  $env.toolkit_env = 0..<$max_layers 
-    | each {{
-        module_file: null
-        watch_files: []
-        last_sync: null
-      }}
+  
 
   let hooks = [
     {
@@ -43,7 +31,7 @@ export def --env init [] {
 
         let layers = layers
           | where allowed
-          | take $max_layers
+          | take (max-layers)
           | enumerate
 
         log debug $"Found ($layers | length) allowed layers"
@@ -54,9 +42,9 @@ export def --env init [] {
           # create symlinks to layers
           symlink -f $mod $layer.item.path
 
-          let toolkit_env = $env.toolkit_env | get $layer.index
+          let toolkit_env = env | get $layer.index
           if $toolkit_env.module_file != $layer.item.path {
-            $env.toolkit_env = $env.toolkit_env | update $layer.index {
+            $env.toolkit.env = $env.toolkit.env | update $layer.index {
               module_file: $layer.item.path
               watch_files: []
               last_sync: null
@@ -66,23 +54,22 @@ export def --env init [] {
       }
     }
     ...(
-      0..<$max_layers
+      0..<(max-layers)
       | each { |layer_index| 
           let layer_path = $toolkit_tmp_dir | path join $"toolkit-layer-($layer_index).nu"
 
           {
             added_by: "toolkit"
-            name: "toolkit::use_overlay"
+            name: $"toolkit::use_overlay_($layer_index)"
             condition: {
-              let toolkit_env = $env.toolkit_env | get $layer_index
+              let toolkit_env = env | get $layer_index
 
               (
-                ($env.TOOLKIT_ENABLED? | default true) 
-                and ($layer_path | path exists)
+                ($layer_path | path exists)
                 and (
                   ($toolkit_env.last_sync == null) 
                   or (
-                    $env.toolkit_env 
+                    env 
                     | slice 0..$layer_index
                     | each --flatten { |it| [$it.module_file] ++ $it.watch_files }
                     | each --flatten { ls $in }
@@ -97,12 +84,12 @@ export def --env init [] {
               $"
                 overlay use -r ($layer_path)
 
-                $env.toolkit_env.($layer_index).last_sync = ls -l ($layer_path) | get accessed | first
+                $env.toolkit.env.($layer_index).last_sync = ls -l ($layer_path) | get accessed | first
 
                 use ($mod_path)/logging.nu *
-                log info $\"loaded layer ($layer_index) from \($env.toolkit_env.($layer_index).module_file)\"
-                log debug $\"layer ($layer_index) watch files: \($env.toolkit_env.($layer_index).watch_files)\"
-                log trace $\"layer ($layer_index) last sync: \($env.toolkit_env.($layer_index).last_sync)\"
+                log info $\"loaded layer ($layer_index) from \($env.toolkit.env.($layer_index).module_file)\"
+                log debug $\"layer ($layer_index) watch files: \($env.toolkit.env.($layer_index).watch_files)\"
+                log trace $\"layer ($layer_index) last sync: \($env.toolkit.env.($layer_index).last_sync)\"
               "
             )
           }
@@ -139,17 +126,6 @@ def is-allowed [
     }
   
   $allowed and $valid
-}
-
-# toggle toolkit on/off
-export def --env toggle [] {
-  $env.TOOLKIT_ENABLED = not ($env.TOOLKIT_ENABLED? | default true)
-
-  if $env.TOOLKIT_ENABLED {
-    print "toolkit enabled"
-  } else {
-    print "toolkit disabled"
-  }
 }
  
 # get all toolkit layers from the current directory upwards
