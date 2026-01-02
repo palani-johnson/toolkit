@@ -55,7 +55,7 @@ export def --env init [
             | each {{ path: $toolkit_empty_file index: $in }}
             | merge deep $allowed_layers
           
-          for layer in $max_layers { 
+          for layer in $layers { 
             let mod = $toolkit_tmp_dir | path join $"toolkit-layer-($layer.index).nu"
             
             # create symlinks to layers
@@ -132,7 +132,7 @@ export def layers []: [
     }
   | where { path exists }
   | each { |path|
-      let allowed = $config.allowed 
+      let allowed = $config.allowed_dirs 
         | any { |pattern| $path | str starts-with $pattern }
 
       let valid = try { 

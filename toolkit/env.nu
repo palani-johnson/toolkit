@@ -1,7 +1,7 @@
 
 const default_config = {
   filenames: ["toolkit.nu"]
-  allowed: []
+  allowed_dirs: []
   log_level: "info"
 }
 
@@ -9,7 +9,7 @@ const default_config = {
 export def "config default" []: [
   nothing -> record<
     filenames: list<string>
-    allowed: list<string>
+    allowed_dirs: list<string>
     log_level: oneof<string int>
   >
 ] {
@@ -49,7 +49,7 @@ export def "config path" []: nothing -> string {
 export def --env config []: [
   nothing -> record<
     filenames: list<string>
-    allowed: list<string>
+    allowed_dirs: list<string>
     log_level: oneof<string int>
   >
 ] {
@@ -59,7 +59,20 @@ export def --env config []: [
     $env.toolkit.sync = date now
     $env.toolkit.config = config default 
       | merge deep (open $config_path)
-      | upsert allowed { each { path expand -n } }
+      | upsert allowed_dirs { 
+          each {
+            let path = $in | path expand -n -s
+
+            # TODO: test this all platforms
+            if ($path | path split | first) != "/" {
+              error make -u {
+                msg: $"Allowed directory paths must be absolute: ($path)"
+              }
+            }
+
+            $path
+          } 
+        }
   }
 
   $env.toolkit.config
