@@ -10,7 +10,7 @@ const mod_path = (path self | path parse).parent
 #
 # Sets up hooks to manage overlays for toolkit layers. Call this function in `config.nu`.
 export def --env init [
-  --layers: int = 5
+  --layers: int = 5 # number of layers to support, more layers may negatively impact performance
 ] {
   if (
     ($env.config.hooks.pre_prompt ++ $env.config.hooks.pre_execution)
