@@ -10,7 +10,7 @@ const mod_path = (path self | path parse).parent
 #
 # Sets up hooks to manage overlays for toolkit layers. Call this function in `config.nu`.
 export def --env init [
-  --layers: int = 5 # number of layers to support, more layers may negatively impact performance
+  --max-layers (-m): int = 5 # maximum number of layers to support. more layers may negatively impact performance
 ] {
   if (
     ($env.config.hooks.pre_prompt ++ $env.config.hooks.pre_execution)
@@ -26,7 +26,7 @@ export def --env init [
   $env.toolkit = {
     tmp_dir: $toolkit_tmp_dir
     env: (
-      0..<$layers | each {{
+      0..<$max_layers | each {{
         module_file: null
         watch_files: []
         last_sync: null
@@ -47,15 +47,15 @@ export def --env init [
 
           let allowed_layers = layers
             | where allowed
-            | take ($layers)
+            | take ($max_layers)
 
           log debug $"Found ($allowed_layers | length) allowed layers"
 
-          let layers = 0..<$layers 
+          let layers = 0..<$max_layers 
             | each {{ path: $toolkit_empty_file index: $in }}
             | merge deep $allowed_layers
           
-          for layer in $layers { 
+          for layer in $max_layers { 
             let mod = $toolkit_tmp_dir | path join $"toolkit-layer-($layer.index).nu"
             
             # create symlinks to layers
@@ -72,7 +72,7 @@ export def --env init [
         }
       }
     | append (
-        0..<$layers | each { |layer_index| 
+        0..<$max_layers | each { |layer_index| 
           let layer_path = $toolkit_tmp_dir | path join $"toolkit-layer-($layer_index).nu"
 
           {
