@@ -54,3 +54,11 @@ The configuration file is sourced from either `$env.XDG_CONFIG_HOME` or `$env.HO
 If no config file is found, a file named `toolkit.toml` with default settings will be created in the config directory.
 
 ### Options
+
+A `--max-layers` parameter (default 5) can be passed to `toolkit init`, controlling the maximum number of layers toolkit will attempt to load. More layers may negatively impact performance. All other configuration options can be configured in your toolkit config file:
+
+| Param        | Type                | Description                                         | Default        |
+| ------------ | ------------------- | --------------------------------------------------- | -------------- |
+| filenames    | `list<string>`      | list of allowed file names                          | ["toolkit.nu"] |
+| allowed_dirs | `list<string>`      | list of allowed directory paths. must be absolute   | []             |
+| log_level    | `oneof<string int>` | The configured log level (see `toolkit/logging.nu`) | info           |
