@@ -1,4 +1,4 @@
-# toolkit - a modern Nushell direnv alternative
+# toolkit - a Nushell direnv alternative
 
 :warning: **This is an _EXPERIMENTAL_ module. Use at your own risk.** :warning:
 
@@ -8,7 +8,7 @@
 
 ## Table of content
 
-- [toolkit - a modern Nushell direnv alternative](#toolkit---a-modern-nushell-direnv-alternative)
+- [toolkit - a Nushell direnv alternative](#toolkit---a-nushell-direnv-alternative)
   - [Table of content](#table-of-content)
   - [Installation](#installation)
     - [With `nupm`](#with-nupm)

@@ -2,6 +2,6 @@
   name: toolkit
   type: module
   version: "0.1.0"
-  description: "A Modern Nushell direnv alternative"
+  description: "A Nushell direnv alternative"
   license: "LICENSE"
 }
