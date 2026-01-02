@@ -60,5 +60,5 @@ A `--max-layers` parameter (default 5) can be passed to `toolkit init`, controll
 | Param        | Type                | Description                                         | Default        |
 | ------------ | ------------------- | --------------------------------------------------- | -------------- |
 | filenames    | `list<string>`      | list of allowed file names                          | ["toolkit.nu"] |
-| allowed_dirs | `list<string>`      | list of allowed directory paths. must be absolute   | []             |
+| allowed_dirs | `list<string>`      | list of allowed directory paths. must be absolute.  | []             |
 | log_level    | `oneof<string int>` | The configured log level (see `toolkit/logging.nu`) | info           |
