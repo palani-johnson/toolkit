@@ -16,12 +16,20 @@ export def "config default" []: [
   $default_config
 }
 
-# Get the path to the toolkit configuration file
-# Creates a default config file if none exists
+# Get the path to the toolkit configuration file.
+# Creates a default config file if none exists.
+#
+# This command will
+#   1) get the config directory from `$env.XDG_CONFIG_HOME` or `$env.HOME/.config`.
+#   2) look for a config file named `toolkit` with one of the following extensions (in order):
+#        - toml
+#        - json
+#        - yaml
+#        - yml
+#        - nuon
+#   3) if no config file is found, create a default `toolkit.toml` file in the config directory.
 export def "config path" []: nothing -> string {
   let config_dir = $env.XDG_CONFIG_HOME? | default {$env.HOME | path join '.config'}
-
-  mkdir $config_dir
 
   [ "toml" "json" "yaml" "yml" "nuon" ]
   | each { |ext| $config_dir | path join $"toolkit.($ext)" }
@@ -30,17 +38,11 @@ export def "config path" []: nothing -> string {
   | default { 
       let path = $config_dir | path join "toolkit.toml" 
 
+      mkdir $config_dir
       config default | save $path
 
       $path 
     }
-}
-
-def --env init [] {
-  if $env.ENV_CONVERSIONS.toolkit? == null {
-    $env.ENV_CONVERSIONS.toolkit = { from_string: { {} } to_string: { "" } }
-    $env.toolkit = {}
-  }
 }
 
 # Get the current toolkit configuration
@@ -51,8 +53,6 @@ export def --env config []: [
     log_level: oneof<string int>
   >
 ] {
-  init 
-
   let config_path = config path
 
   if $env.toolkit.sync? == null or (ls $config_path | get modified.0) > $env.toolkit.sync {
@@ -64,31 +64,3 @@ export def --env config []: [
 
   $env.toolkit.config
 }
-
-export def --env main []: [
-  nothing -> list<
-    record<
-      module_file: oneof<string nothing>
-      watch_files: list<string>
-      last_sync: oneof<datetime nothing>
-    >
-  >
-] {
-  init
-
-  if $env.toolkit.env? == null {
-    $env.toolkit.env = 0..<5 | each {{
-      module_file: null
-      watch_files: []
-      last_sync: null
-    }}
-  }
-
-  $env.toolkit.env
-}
-
-export def --env max-layers [] {
-  main | length
-}
-
-
